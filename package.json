@@ -1,0 +1,9 @@
+{
+  "name": "pmpl-online-bus-pass",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "dev": "python run.py"
+  }
+}

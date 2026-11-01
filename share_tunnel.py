@@ -46,15 +46,18 @@ def main():
 
     time.sleep(3)
 
+    npx_cmd = "npx.cmd" if os.name == "nt" else "npx"
+
     # 3. Start Cloudflare Tunnel
     print("[3/3] Creating public Cloudflare tunnel (no sign-up required)...")
     cloudflared_proc = subprocess.Popen(
-        ["npx", "-y", "cloudflared", "tunnel", "--url", "http://localhost:5173"],
+        [npx_cmd, "-y", "cloudflared", "tunnel", "--url", "http://localhost:5173"],
         cwd=base_dir,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
+        shell=True
     )
 
     tunnel_url = None
@@ -77,16 +80,24 @@ def main():
     else:
         print("\n[INFO] Tunnel started. Look for the trycloudflare.com URL above.\n")
 
+    def kill_proc(proc):
+        if not proc:
+            return
+        try:
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:
+                proc.terminate()
+        except Exception:
+            pass
+
     try:
         cloudflared_proc.wait()
     except KeyboardInterrupt:
         print("\nShutting down tunnel and servers...")
-        try:
-            cloudflared_proc.terminate()
-            frontend_proc.terminate()
-            backend_proc.terminate()
-        except Exception:
-            pass
+        kill_proc(cloudflared_proc)
+        kill_proc(frontend_proc)
+        kill_proc(backend_proc)
         print("All servers stopped.")
 
 if __name__ == "__main__":

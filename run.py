@@ -14,12 +14,30 @@ def main():
     python_exe = venv_python if os.path.exists(venv_python) else sys.executable
     print(f"Using Python: {python_exe}")
 
+    # Discover local Wi-Fi / LAN IP
+    local_ip = "127.0.0.1"
+    try:
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+
+    print("\n" + "=" * 58)
+    print("  🚌 PMPL SMARTPASS SYSTEM READY FOR LOCAL & NETWORK USE")
+    print(f"  ➜ On this PC:     http://localhost:5173")
+    print(f"  ➜ On Mobile/Wi-Fi: http://{local_ip}:5173")
+    print(f"  ➜ Swagger API:    http://localhost:8000/docs")
+    print("=" * 58 + "\n")
+
     env = os.environ.copy()
     env["RUNNING_VIA_RUN_PY"] = "1"
 
-    # Start FastAPI backend
+    # Start FastAPI backend binding to 0.0.0.0
     backend_process = subprocess.Popen(
-        [python_exe, "-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"],
+        [python_exe, "-m", "uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"],
         cwd=base_dir,
         env=env
     )
